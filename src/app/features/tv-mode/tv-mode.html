@@ -1,0 +1,79 @@
+<div class="tv-container">
+  <!-- Clock header -->
+  <header class="tv-header">
+    <div class="tv-datetime">
+      <div class="tv-time">{{ currentTime() }}</div>
+      <div class="tv-date">{{ currentDate() }}</div>
+    </div>
+    <div class="tv-family-name">{{ family.family()?.name }}</div>
+    <button mat-icon-button class="exit-btn" (click)="exitKiosk()" title="Exit kiosk">
+      <mat-icon>close_fullscreen</mat-icon>
+    </button>
+  </header>
+
+  <!-- Screen indicator dots -->
+  <div class="screen-dots">
+    <span class="dot" [class.active]="currentScreen() === 'events'"></span>
+    <span class="dot" [class.active]="currentScreen() === 'tasks'"></span>
+    <span class="dot" [class.active]="currentScreen() === 'quote'"></span>
+  </div>
+
+  <!-- Screens -->
+  <main class="tv-main" [class.visible]="visible()">
+
+    <!-- Screen 1: Events -->
+    @if (currentScreen() === 'events') {
+      <div class="tv-screen">
+        <h2 class="screen-title">Today's Events</h2>
+        @if (events().length === 0) {
+          <p class="tv-empty">Nothing on the calendar today</p>
+        } @else {
+          <ul class="tv-event-list">
+            @for (event of events(); track event.id) {
+              <li class="tv-event">
+                <span class="tv-event-time">
+                  {{ formatEventTime(event.start_time, event.end_time, event.all_day) }}
+                </span>
+                <span class="tv-event-title">{{ event.title }}</span>
+              </li>
+            }
+          </ul>
+        }
+      </div>
+    }
+
+    <!-- Screen 2: Tasks -->
+    @if (currentScreen() === 'tasks') {
+      <div class="tv-screen">
+        <h2 class="screen-title">Pending Tasks</h2>
+        @if (pendingTasks().length === 0) {
+          <p class="tv-empty">All tasks complete!</p>
+        } @else {
+          <ul class="tv-task-list">
+            @for (task of pendingTasks(); track task.id) {
+              <li class="tv-task" [class]="'priority-' + task.priority">
+                <span class="tv-task-title">{{ task.title }}</span>
+                <span class="tv-task-priority">{{ task.priority }}</span>
+              </li>
+            }
+          </ul>
+        }
+      </div>
+    }
+
+    <!-- Screen 3: Quote -->
+    @if (currentScreen() === 'quote') {
+      <div class="tv-screen tv-quote-screen">
+        @if (quote()) {
+          <blockquote class="tv-quote-text">{{ quote()!.text }}</blockquote>
+          @if (quote()!.author) {
+            <p class="tv-quote-author">— {{ quote()!.author }}</p>
+          }
+        } @else {
+          <p class="tv-empty">No quotes added yet</p>
+        }
+      </div>
+    }
+
+  </main>
+</div>

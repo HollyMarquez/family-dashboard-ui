@@ -1,0 +1,144 @@
+<div class="tasks-page">
+  <header class="page-header">
+    <h1>Tasks</h1>
+    <div class="filter-row">
+      <select class="filter-select" [value]="statusFilter()"
+        (change)="statusFilter.set($any($event.target).value)">
+        <option value="all">All statuses</option>
+        <option value="pending">Pending</option>
+        <option value="in_progress">In Progress</option>
+        <option value="done">Done</option>
+      </select>
+      <select class="filter-select" [value]="priorityFilter()"
+        (change)="priorityFilter.set($any($event.target).value)">
+        <option value="all">All priorities</option>
+        <option value="high">High</option>
+        <option value="medium">Medium</option>
+        <option value="low">Low</option>
+      </select>
+    </div>
+  </header>
+
+  <!-- Create task (parent only) -->
+  @if (family.isParent()) {
+    <mat-expansion-panel class="create-panel">
+      <mat-expansion-panel-header>
+        <mat-panel-title>
+          <mat-icon>add_circle_outline</mat-icon>
+          Add New Task
+        </mat-panel-title>
+      </mat-expansion-panel-header>
+
+      <form [formGroup]="createForm" (ngSubmit)="createTask()" class="create-form">
+        <mat-form-field appearance="outline">
+          <mat-label>Title</mat-label>
+          <input matInput formControlName="title" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Description</mat-label>
+          <textarea matInput formControlName="description" rows="2"></textarea>
+        </mat-form-field>
+
+        <div class="form-row">
+          <mat-form-field appearance="outline">
+            <mat-label>Assign to</mat-label>
+            <mat-select formControlName="assigned_to">
+              <mat-option value="">Unassigned</mat-option>
+              @for (m of members; track m.id) {
+                <mat-option [value]="m.user_id">{{ m.display_name }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Priority</mat-label>
+            <mat-select formControlName="priority">
+              <mat-option value="high">High</mat-option>
+              <mat-option value="medium">Medium</mat-option>
+              <mat-option value="low">Low</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Due Date</mat-label>
+            <input matInput type="date" formControlName="due_date" />
+          </mat-form-field>
+        </div>
+
+        <div class="form-actions">
+          <button mat-flat-button color="primary" type="submit"
+            [disabled]="saving() || createForm.invalid">
+            @if (saving()) {
+              <mat-spinner diameter="18" />
+            } @else {
+              Create Task
+            }
+          </button>
+        </div>
+      </form>
+    </mat-expansion-panel>
+  }
+
+  <!-- Task list -->
+  @if (loading()) {
+    <div class="loading-center">
+      <mat-spinner />
+    </div>
+  } @else if (!family.hasFamily()) {
+    <p class="empty-state">You must belong to a family to view tasks.</p>
+  } @else if (filteredTasks().length === 0) {
+    <p class="empty-state">No tasks match the current filters.</p>
+  } @else {
+    <div class="task-list">
+      @for (task of filteredTasks(); track task.id) {
+        <mat-card class="task-card" [class.task-done]="task.status === 'done'">
+          <mat-card-content class="task-content">
+            <div class="task-main">
+              <div class="task-badges">
+                <span class="badge" [class]="'badge-' + task.priority">{{ task.priority }}</span>
+                <span class="badge" [class]="'badge-' + task.status">{{ task.status }}</span>
+              </div>
+              <span class="task-title">{{ task.title }}</span>
+              @if (task.description) {
+                <p class="task-desc">{{ task.description }}</p>
+              }
+              <div class="task-meta">
+                <span class="meta-item">
+                  <mat-icon>person</mat-icon>
+                  {{ getMemberName(task.assigned_to) }}
+                </span>
+                @if (task.due_date) {
+                  <span class="meta-item">
+                    <mat-icon>event</mat-icon>
+                    {{ task.due_date | slice:0:10 }}
+                  </span>
+                }
+              </div>
+            </div>
+
+            <div class="task-actions">
+              <!-- Children: status toggle on own tasks -->
+              @if (!family.isParent() && isMyTask(task)) {
+                <button mat-stroked-button (click)="updateStatus(task, nextStatus(task.status))">
+                  <mat-icon>autorenew</mat-icon>
+                  {{ nextStatus(task.status) | titlecase }}
+                </button>
+              }
+              <!-- Parents: full controls -->
+              @if (family.isParent()) {
+                <button mat-icon-button (click)="updateStatus(task, nextStatus(task.status))"
+                  [title]="'Mark as ' + nextStatus(task.status)">
+                  <mat-icon>autorenew</mat-icon>
+                </button>
+                <button mat-icon-button color="warn" (click)="deleteTask(task)" title="Delete">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              }
+            </div>
+          </mat-card-content>
+        </mat-card>
+      }
+    </div>
+  }
+</div>

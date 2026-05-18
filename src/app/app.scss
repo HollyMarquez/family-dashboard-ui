@@ -1,0 +1,41 @@
+.app-toolbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  gap: var(--space-4);
+
+  .app-brand {
+    font-size: var(--text-lg);
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    margin-right: var(--space-4);
+  }
+
+  .app-nav {
+    display: flex;
+    gap: var(--space-1);
+
+    .nav-active {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: var(--radius-sm);
+    }
+  }
+
+  .spacer {
+    flex: 1;
+  }
+
+  .user-name {
+    font-size: var(--text-sm);
+    opacity: 0.85;
+    margin-right: var(--space-2);
+  }
+}
+
+main {
+  &.with-toolbar {
+    padding-top: 64px;
+  }
+}

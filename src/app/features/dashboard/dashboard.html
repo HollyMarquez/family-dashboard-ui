@@ -1,0 +1,129 @@
+<div class="dashboard">
+  <header class="dash-header">
+    <div class="dash-greeting">
+      <h1>
+        @if (auth.displayName()) {
+          Hello, {{ auth.displayName() }}
+        } @else {
+          Dashboard
+        }
+      </h1>
+      @if (family.family()) {
+        <p class="family-name">{{ family.family()!.name }}</p>
+      }
+    </div>
+    @if (family.isParent()) {
+      <button mat-flat-button color="primary" (click)="goToTasks()">
+        <mat-icon>add</mat-icon>
+        New Task
+      </button>
+    }
+  </header>
+
+  @if (loading()) {
+    <div class="loading-center">
+      <mat-spinner />
+    </div>
+  } @else if (!family.hasFamily()) {
+    <mat-card class="setup-card">
+      <mat-card-content>
+        @if (!showFamilyForm()) {
+          <div class="setup-prompt">
+            <mat-icon class="setup-icon">home</mat-icon>
+            <h2>Welcome!</h2>
+            <p>Create your family to get started.</p>
+            <button mat-flat-button color="primary" (click)="showFamilyForm.set(true)">
+              Create Family
+            </button>
+          </div>
+        } @else {
+          <form [formGroup]="familyForm" (ngSubmit)="createFamily()" class="family-form">
+            <h2>New Family</h2>
+            <mat-form-field appearance="outline">
+              <mat-label>Family Name</mat-label>
+              <input matInput formControlName="name" placeholder="e.g. The Marquez Family" />
+            </mat-form-field>
+            <div class="form-actions">
+              <button mat-button type="button" (click)="showFamilyForm.set(false)">Cancel</button>
+              <button mat-flat-button color="primary" type="submit"
+                [disabled]="familySaving() || familyForm.invalid">
+                @if (familySaving()) {
+                  <mat-spinner diameter="18" />
+                } @else {
+                  Create
+                }
+              </button>
+            </div>
+          </form>
+        }
+      </mat-card-content>
+    </mat-card>
+  } @else if (error()) {
+    <div class="error-banner">{{ error() }}</div>
+  } @else {
+    <div class="dash-grid">
+      <!-- Today's Events -->
+      <mat-card class="dash-card">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>event</mat-icon> Today's Events
+          </mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          @if ((data()?.events ?? []).length === 0) {
+            <p class="empty-state">No events today</p>
+          } @else {
+            @for (event of data()!.events; track event.id) {
+              <div class="event-item">
+                <span class="event-title">{{ event.title }}</span>
+                <span class="event-time">{{ formatTime(event.start_time, event.end_time, event.all_day) }}</span>
+              </div>
+            }
+          }
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Pending Tasks -->
+      <mat-card class="dash-card">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>check_circle_outline</mat-icon> Pending Tasks
+          </mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          @if (highPriorityTasks().length === 0 && otherTasks().length === 0) {
+            <p class="empty-state">All caught up!</p>
+          } @else {
+            @for (task of highPriorityTasks(); track task.id) {
+              <div class="task-item">
+                <span class="badge badge-high">High</span>
+                <span class="task-title">{{ task.title }}</span>
+                <span class="task-assignee">{{ getAssigneeName(task) }}</span>
+              </div>
+            }
+            @for (task of otherTasks(); track task.id) {
+              <div class="task-item">
+                <span class="badge" [class]="'badge-' + task.priority">{{ task.priority }}</span>
+                <span class="task-title">{{ task.title }}</span>
+                <span class="task-assignee">{{ getAssigneeName(task) }}</span>
+              </div>
+            }
+          }
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Quote -->
+      @if (data()?.quote) {
+        <mat-card class="dash-card quote-card">
+          <mat-card-content>
+            <mat-icon class="quote-icon">format_quote</mat-icon>
+            <blockquote class="quote-text">{{ data()!.quote!.text }}</blockquote>
+            @if (data()!.quote!.author) {
+              <p class="quote-author">— {{ data()!.quote!.author }}</p>
+            }
+          </mat-card-content>
+        </mat-card>
+      }
+    </div>
+  }
+</div>

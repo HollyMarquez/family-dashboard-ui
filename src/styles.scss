@@ -1,0 +1,91 @@
+@use '@angular/material' as mat;
+@use './styles/variables';
+
+html {
+  @include mat.theme((
+    color: (
+      theme-type: light,
+      primary: mat.$azure-palette,
+    ),
+    typography: Inter,
+    density: 0
+  ));
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  color: var(--color-text);
+  background-color: var(--color-bg);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-full);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+
+  &.badge-high {
+    background: rgba(239, 68, 68, 0.12);
+    color: var(--color-high);
+  }
+
+  &.badge-medium {
+    background: rgba(245, 158, 11, 0.12);
+    color: var(--color-medium);
+  }
+
+  &.badge-low {
+    background: rgba(16, 185, 129, 0.12);
+    color: var(--color-low);
+  }
+
+  &.badge-pending {
+    background: rgba(156, 163, 175, 0.15);
+    color: var(--color-text-muted);
+  }
+
+  &.badge-in_progress {
+    background: rgba(59, 130, 246, 0.12);
+    color: var(--color-in-progress);
+  }
+
+  &.badge-done {
+    background: rgba(16, 185, 129, 0.12);
+    color: var(--color-done);
+  }
+}

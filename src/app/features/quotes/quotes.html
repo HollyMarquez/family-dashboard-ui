@@ -1,0 +1,64 @@
+<div class="quotes-page">
+  <header class="page-header">
+    <h1>Quotes</h1>
+  </header>
+
+  <!-- Add quote form -->
+  <mat-card class="add-card">
+    <mat-card-header>
+      <mat-card-title>Add a Quote</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <form [formGroup]="addForm" (ngSubmit)="addQuote()" class="add-form">
+        <mat-form-field appearance="outline">
+          <mat-label>Quote</mat-label>
+          <textarea matInput formControlName="text" rows="3" placeholder="Enter the quote text..."></textarea>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Author (optional)</mat-label>
+          <input matInput formControlName="author" placeholder="e.g. Maya Angelou" />
+        </mat-form-field>
+
+        <div class="form-actions">
+          <button mat-flat-button color="primary" type="submit"
+            [disabled]="saving() || addForm.invalid">
+            @if (saving()) {
+              <mat-spinner diameter="18" />
+            } @else {
+              Add Quote
+            }
+          </button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Quote list -->
+  @if (loading()) {
+    <div class="loading-center">
+      <mat-spinner />
+    </div>
+  } @else if (quotes().length === 0) {
+    <p class="empty-state">No quotes yet. Add the first one!</p>
+  } @else {
+    <div class="quote-list">
+      @for (quote of quotes(); track quote.id) {
+        <mat-card class="quote-card">
+          <mat-card-content class="quote-content">
+            <mat-icon class="quote-icon">format_quote</mat-icon>
+            <div class="quote-body">
+              <p class="quote-text">{{ quote.text }}</p>
+              @if (quote.author) {
+                <p class="quote-author">— {{ quote.author }}</p>
+              }
+            </div>
+            <button mat-icon-button color="warn" (click)="deleteQuote(quote)" title="Delete quote">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </mat-card-content>
+        </mat-card>
+      }
+    </div>
+  }
+</div>
