@@ -6,7 +6,6 @@
         (change)="statusFilter.set($any($event.target).value)">
         <option value="all">All statuses</option>
         <option value="pending">Pending</option>
-        <option value="in_progress">In Progress</option>
         <option value="done">Done</option>
       </select>
       <select class="filter-select" [value]="priorityFilter()"
@@ -18,6 +17,19 @@
       </select>
     </div>
   </header>
+
+  <!-- List visibility filter -->
+  @if (allListItems().length > 0) {
+    <div class="list-filter">
+      @for (item of allListItems(); track item.id) {
+        <label class="list-chip" [class.list-chip-hidden]="!isListVisible(item.id)">
+          <input type="checkbox" [checked]="isListVisible(item.id)"
+            (change)="toggleListVisibility(item.id)" />
+          {{ item.title }}
+        </label>
+      }
+    </div>
+  }
 
   <!-- Create task (parent only) -->
   @if (family.isParent()) {
@@ -52,6 +64,16 @@
           </mat-form-field>
 
           <mat-form-field appearance="outline">
+            <mat-label>Task List</mat-label>
+            <mat-select formControlName="task_list_id">
+              <mat-option value="">None</mat-option>
+              @for (l of taskLists(); track l.id) {
+                <mat-option [value]="l.id">{{ l.title }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
             <mat-label>Priority</mat-label>
             <mat-select formControlName="priority">
               <mat-option value="high">High</mat-option>
@@ -80,65 +102,120 @@
     </mat-expansion-panel>
   }
 
-  <!-- Task list -->
+  <!-- Task list cards -->
   @if (loading()) {
     <div class="loading-center">
       <mat-spinner />
     </div>
   } @else if (!family.hasFamily()) {
     <p class="empty-state">You must belong to a family to view tasks.</p>
-  } @else if (filteredTasks().length === 0) {
-    <p class="empty-state">No tasks match the current filters.</p>
+  } @else if (groupedTasks().length === 0) {
+    <p class="empty-state">No lists found. Make sure your family members are set up.</p>
   } @else {
-    <div class="task-list">
-      @for (task of filteredTasks(); track task.id) {
-        <mat-card class="task-card" [class.task-done]="task.status === 'done'">
-          <mat-card-content class="task-content">
-            <div class="task-main">
-              <div class="task-badges">
-                <span class="badge" [class]="'badge-' + task.priority">{{ task.priority }}</span>
-                <span class="badge" [class]="'badge-' + task.status">{{ task.status }}</span>
-              </div>
-              <span class="task-title">{{ task.title }}</span>
-              @if (task.description) {
-                <p class="task-desc">{{ task.description }}</p>
+    <div class="lists-scroll">
+    <div class="lists-grid">
+      @for (group of groupedTasks(); track group.list.id) {
+        <mat-card class="list-card">
+          <mat-card-header>
+            <mat-card-title>{{ group.list.title }}</mat-card-title>
+            <mat-card-subtitle>{{ group.tasks.length }} task{{ group.tasks.length === 1 ? '' : 's' }}</mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="task-list">
+              @if (group.tasks.length === 0) {
+                <p class="list-empty">No tasks</p>
               }
-              <div class="task-meta">
-                <span class="meta-item">
-                  <mat-icon>person</mat-icon>
-                  {{ getMemberName(task.assigned_to) }}
-                </span>
-                @if (task.due_date) {
-                  <span class="meta-item">
-                    <mat-icon>event</mat-icon>
-                    {{ task.due_date | slice:0:10 }}
-                  </span>
-                }
-              </div>
-            </div>
-
-            <div class="task-actions">
-              <!-- Children: status toggle on own tasks -->
-              @if (!family.isParent() && isMyTask(task)) {
-                <button mat-stroked-button (click)="updateStatus(task, nextStatus(task.status))">
-                  <mat-icon>autorenew</mat-icon>
-                  {{ nextStatus(task.status) | titlecase }}
-                </button>
+              @for (task of group.activeTasks; track task.id) {
+                <div class="task-row">
+                  <input type="checkbox" class="task-check" [checked]="false"
+                    [disabled]="!family.isParent() && !isMyTask(task)"
+                    (change)="updateStatus(task, 'done')" />
+                  <div class="task-row-main">
+                    @if (task.priority === 'high') {
+                      <span class="badge badge-high">high</span>
+                    }
+                    <span class="task-title">{{ task.title }}</span>
+                    @if (task.description) {
+                      <p class="task-desc">{{ task.description }}</p>
+                    }
+                    <div class="task-meta">
+                      @if (task.assigned_to) {
+                        <span class="meta-item">
+                          <mat-icon>person</mat-icon>
+                          {{ getMemberName(task.assigned_to) }}
+                        </span>
+                      }
+                      @if (task.due_date) {
+                        <span class="meta-item">
+                          <mat-icon>event</mat-icon>
+                          {{ task.due_date | slice:0:10 }}
+                        </span>
+                      }
+                    </div>
+                  </div>
+                  @if (family.isParent()) {
+                    <div class="task-actions">
+                      <button mat-icon-button color="warn" (click)="deleteTask(task)" title="Delete">
+                        <mat-icon>delete</mat-icon>
+                      </button>
+                    </div>
+                  }
+                </div>
               }
-              <!-- Parents: full controls -->
-              @if (family.isParent()) {
-                <button mat-icon-button (click)="updateStatus(task, nextStatus(task.status))"
-                  [title]="'Mark as ' + nextStatus(task.status)">
-                  <mat-icon>autorenew</mat-icon>
-                </button>
-                <button mat-icon-button color="warn" (click)="deleteTask(task)" title="Delete">
-                  <mat-icon>delete</mat-icon>
-                </button>
+              @if (group.doneTasks.length > 0) {
+                <div class="done-section">
+                  <button class="done-toggle" (click)="toggleDoneSection(group.list.id)">
+                    <mat-icon>{{ isDoneSectionExpanded(group.list.id) ? 'expand_less' : 'expand_more' }}</mat-icon>
+                    {{ group.doneTasks.length }} completed
+                  </button>
+                  @if (isDoneSectionExpanded(group.list.id)) {
+                    <div class="done-tasks">
+                      @for (task of group.doneTasks; track task.id) {
+                        <div class="task-row task-done">
+                          <input type="checkbox" class="task-check" [checked]="true"
+                            [disabled]="!family.isParent() && !isMyTask(task)"
+                            (change)="updateStatus(task, 'pending')" />
+                          <div class="task-row-main">
+                            @if (task.priority === 'high') {
+                              <span class="badge badge-high">high</span>
+                            }
+                            <span class="task-title">{{ task.title }}</span>
+                            @if (task.description) {
+                              <p class="task-desc">{{ task.description }}</p>
+                            }
+                            <div class="task-meta">
+                              @if (task.assigned_to) {
+                                <span class="meta-item">
+                                  <mat-icon>person</mat-icon>
+                                  {{ getMemberName(task.assigned_to) }}
+                                </span>
+                              }
+                              @if (task.due_date) {
+                                <span class="meta-item">
+                                  <mat-icon>event</mat-icon>
+                                  {{ task.due_date | slice:0:10 }}
+                                </span>
+                              }
+                            </div>
+                          </div>
+                          @if (family.isParent()) {
+                            <div class="task-actions">
+                              <button mat-icon-button color="warn" (click)="deleteTask(task)" title="Delete">
+                                <mat-icon>delete</mat-icon>
+                              </button>
+                            </div>
+                          }
+                        </div>
+                      }
+                    </div>
+                  }
+                </div>
               }
             </div>
           </mat-card-content>
         </mat-card>
       }
+    </div>
     </div>
   }
 </div>

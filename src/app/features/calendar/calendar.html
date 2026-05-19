@@ -1,0 +1,114 @@
+<div class="calendar-page">
+  <header class="page-header">
+    <h1>Calendar</h1>
+    <div class="header-actions">
+      <div class="month-nav">
+        <button mat-icon-button (click)="prevMonth()" aria-label="Previous month">
+          <mat-icon>chevron_left</mat-icon>
+        </button>
+        <span class="month-label">{{ monthLabel() }}</span>
+        <button mat-icon-button (click)="nextMonth()" aria-label="Next month">
+          <mat-icon>chevron_right</mat-icon>
+        </button>
+      </div>
+      @if (family.isParent()) {
+        <button mat-stroked-button (click)="sync()" [disabled]="syncing()">
+          @if (syncing()) {
+            <mat-spinner diameter="18" />
+          } @else {
+            <mat-icon>sync</mat-icon>
+            Sync
+          }
+        </button>
+      }
+    </div>
+  </header>
+
+  @if (loading()) {
+    <div class="loading-center">
+      <mat-spinner />
+    </div>
+  } @else if (!family.hasFamily()) {
+    <p class="empty-state">You must belong to a family to view the calendar.</p>
+  } @else {
+    <div class="calendar-grid-wrapper">
+      <div class="weekday-headers">
+        @for (d of weekDays; track d) {
+          <div class="weekday-header">{{ d }}</div>
+        }
+      </div>
+      <div class="calendar-grid">
+        @for (cell of calendarGrid(); track cell.dateStr) {
+          <button
+            class="calendar-day"
+            [class.other-month]="!cell.inMonth"
+            [class.is-today]="cell.isToday"
+            [class.is-selected]="selectedDay() === cell.dateStr"
+            (click)="selectDay(cell.dateStr)"
+            [attr.aria-label]="cell.dateStr">
+            <span class="day-num">{{ cell.dayNum }}</span>
+            @if (cell.events.length > 0) {
+              <div class="event-indicators">
+                @for (e of cell.events.slice(0, 3); track e.id) {
+                  <span class="event-dot"></span>
+                }
+                @if (cell.events.length > 3) {
+                  <span class="event-overflow">+{{ cell.events.length - 3 }}</span>
+                }
+              </div>
+            }
+          </button>
+        }
+      </div>
+    </div>
+
+    @if (selectedDay()) {
+      <div class="filter-bar">
+        <span class="filter-label">{{ selectedDay()! | date:'EEEE, MMMM d' }}</span>
+        <button mat-icon-button (click)="clearSelection()" aria-label="Clear filter">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+    }
+
+    @if (filteredGroups().length === 0) {
+      <p class="empty-state">
+        {{ selectedDay() ? 'No events on this day.' : 'No events this month.' }}
+      </p>
+    } @else {
+      <div class="event-groups">
+        @for (group of filteredGroups(); track group.day) {
+          <div class="day-group">
+            <div class="day-heading">
+              <span class="day-date">{{ group.day | date:'EEE, MMM d' }}</span>
+            </div>
+            <div class="day-events">
+              @for (event of group.events; track event.id) {
+                <mat-card class="event-card">
+                  <mat-card-content class="event-content">
+                    <div class="event-time">
+                      <mat-icon>{{ event.all_day ? 'event' : 'schedule' }}</mat-icon>
+                      <span>{{ formatTime(event.start_time, event.all_day) }}</span>
+                    </div>
+                    <div class="event-info">
+                      <span class="event-title">{{ event.title }}</span>
+                      @if (event.location) {
+                        <span class="event-meta">
+                          <mat-icon>place</mat-icon>
+                          {{ event.location }}
+                        </span>
+                      }
+                      @if (event.description) {
+                        <p class="event-desc">{{ event.description }}</p>
+                      }
+                    </div>
+                  </mat-card-content>
+                </mat-card>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    }
+  }
+</div>

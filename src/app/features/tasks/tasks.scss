@@ -1,6 +1,4 @@
 .tasks-page {
-  max-width: 900px;
-  margin: 0 auto;
   padding: var(--space-8) var(--space-6);
 }
 
@@ -37,6 +35,63 @@
   }
 }
 
+.list-filter {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: var(--space-2);
+  margin-bottom: var(--space-5);
+  overflow-x: auto;
+  scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
+
+  &::-webkit-scrollbar {
+    height: 4px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: var(--color-border);
+    border-radius: 100px;
+  }
+}
+
+.list-chip {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  padding: var(--space-1) var(--space-3);
+  border-radius: 100px;
+  border: 1.5px solid var(--color-primary);
+  background: var(--color-primary);
+  color: #fff;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.15s, color 0.15s, border-color 0.15s, opacity 0.15s;
+
+  input[type='checkbox'] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+  }
+
+  &.list-chip-hidden {
+    background: transparent;
+    color: var(--color-text-muted);
+    border-color: var(--color-border);
+  }
+
+  &:hover {
+    opacity: 0.8;
+  }
+}
+
 .create-panel {
   margin-bottom: var(--space-6);
   border-radius: var(--radius-md);
@@ -65,7 +120,7 @@
 
   .form-row {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-columns: repeat(4, 1fr);
     gap: var(--space-4);
 
     @media (max-width: 600px) {
@@ -91,40 +146,153 @@
   padding: var(--space-12) 0;
 }
 
-.task-list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-}
+// Scrollable container for list cards
+.lists-scroll {
+  overflow-x: auto;
+  overflow-y: visible;
+  scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
 
-.task-card {
-  border-radius: var(--radius-md);
-  transition: opacity 0.2s;
+  // scrollbar above the content
+  transform: rotateX(180deg);
+  padding-bottom: var(--space-3);
 
-  &.task-done {
-    opacity: 0.55;
+  &::-webkit-scrollbar {
+    height: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: var(--color-border);
+    border-radius: 100px;
+
+    &:hover {
+      background: var(--color-text-muted);
+    }
   }
 }
 
-.task-content {
+.lists-grid {
   display: flex;
-  align-items: flex-start;
-  gap: var(--space-4);
+  flex-wrap: nowrap;
+  gap: var(--space-6);
+  align-items: start;
+  // flip back after parent rotateX trick
+  transform: rotateX(180deg);
+  padding-bottom: var(--space-2);
+
+  .list-card {
+    flex: 0 0 300px;
+    width: 300px;
+    min-width: 300px;
+    max-width: 300px;
+  }
 }
 
-.task-main {
+.list-card {
+  mat-card-header {
+    margin-bottom: var(--space-3);
+  }
+
+  mat-card-title {
+    font-size: var(--text-lg);
+    font-weight: 600;
+  }
+
+  mat-card-content {
+    padding-top: 0;
+  }
+}
+
+.list-empty {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  text-align: center;
+  padding: var(--space-4) 0;
+  margin: 0;
+}
+
+// Task rows inside a list card
+.task-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.task-check {
+  appearance: none;
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  border: 2px solid var(--color-border);
+  border-radius: 4px;
+  background: transparent;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  position: relative;
+
+  &:checked {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+
+    &::after {
+      content: '';
+      position: absolute;
+      left: 3px;
+      top: 0px;
+      width: 6px;
+      height: 10px;
+      border: 2px solid #fff;
+      border-top: none;
+      border-left: none;
+      transform: rotate(45deg);
+    }
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+
+  &:not(:disabled):hover {
+    border-color: var(--color-primary);
+  }
+}
+
+.task-row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--color-border);
+  transition: opacity 0.2s;
+
+  &:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+
+  &.task-done {
+    opacity: 0.5;
+  }
+}
+
+.task-row-main {
   flex: 1;
   min-width: 0;
 
   .task-badges {
     display: flex;
     gap: var(--space-2);
-    margin-bottom: var(--space-2);
+    margin-bottom: var(--space-1);
   }
 
   .task-title {
     font-weight: 600;
-    font-size: var(--text-base);
+    font-size: var(--text-sm);
     display: block;
     margin-bottom: var(--space-1);
   }
@@ -132,25 +300,25 @@
   .task-desc {
     font-size: var(--text-sm);
     color: var(--color-text-muted);
-    margin-bottom: var(--space-2);
+    margin-bottom: var(--space-1);
   }
 
   .task-meta {
     display: flex;
-    gap: var(--space-4);
+    gap: var(--space-3);
     flex-wrap: wrap;
 
     .meta-item {
       display: flex;
       align-items: center;
       gap: var(--space-1);
-      font-size: var(--text-sm);
+      font-size: var(--text-xs);
       color: var(--color-text-muted);
 
       mat-icon {
-        font-size: 16px;
-        width: 16px;
-        height: 16px;
+        font-size: 14px;
+        width: 14px;
+        height: 14px;
       }
     }
   }
@@ -161,4 +329,40 @@
   align-items: center;
   gap: var(--space-1);
   flex-shrink: 0;
+}
+
+.done-section {
+  border-top: 1px dashed var(--color-border);
+  margin-top: var(--space-2);
+}
+
+.done-toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  width: 100%;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  padding: var(--space-2) 0;
+  text-align: left;
+  transition: color 0.15s;
+
+  &:hover {
+    color: var(--color-text);
+  }
+
+  mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+  }
+}
+
+.done-tasks {
+  .task-row:first-child {
+    border-top: none;
+  }
 }

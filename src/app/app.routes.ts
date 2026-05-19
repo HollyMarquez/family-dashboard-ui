@@ -15,6 +15,12 @@ export const routes: Routes = [
       import('./features/dashboard/dashboard').then(m => m.Dashboard),
   },
   {
+    path: 'calendar',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/calendar/calendar').then(m => m.Calendar),
+  },
+  {
     path: 'tasks',
     canActivate: [authGuard],
     loadComponent: () =>

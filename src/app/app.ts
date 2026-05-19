@@ -11,8 +11,10 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { AuthService } from './core/services/auth.service';
 import { FamilyService } from './core/services/family.service';
+import { ThemeService } from './core/services/theme.service';
 
 @Component({
   selector: 'app-root',
@@ -24,6 +26,7 @@ import { FamilyService } from './core/services/family.service';
     MatToolbarModule,
     MatButtonModule,
     MatIconModule,
+    MatTooltipModule,
   ],
   templateUrl: './app.html',
   styleUrl: './app.scss',
@@ -31,6 +34,7 @@ import { FamilyService } from './core/services/family.service';
 export class App {
   readonly auth = inject(AuthService);
   readonly family = inject(FamilyService);
+  readonly theme = inject(ThemeService);
   private readonly router = inject(Router);
 
   private readonly currentUrl = toSignal(

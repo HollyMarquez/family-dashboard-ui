@@ -1,17 +1,31 @@
 @use '@angular/material' as mat;
 @use './styles/variables';
 
+// ─── Angular Material — light theme ──────────────────────────────────────────
 html {
   @include mat.theme((
     color: (
       theme-type: light,
-      primary: mat.$azure-palette,
+      primary: mat.$green-palette,
     ),
     typography: Inter,
     density: 0
   ));
+
+  // ─── Angular Material — dark theme ─────────────────────────────────────────
+  &.dark-theme {
+    @include mat.theme((
+      color: (
+        theme-type: dark,
+        primary: mat.$green-palette,
+      ),
+    ));
+
+    color-scheme: dark;
+  }
 }
 
+// ─── Reset ───────────────────────────────────────────────────────────────────
 *,
 *::before,
 *::after {
@@ -25,6 +39,7 @@ body {
   height: 100%;
 }
 
+// ─── Base ────────────────────────────────────────────────────────────────────
 body {
   font-family: var(--font-body);
   font-size: var(--text-base);
@@ -32,6 +47,9 @@ body {
   background-color: var(--color-bg);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  transition:
+    background-color var(--transition-slow),
+    color var(--transition-base);
 }
 
 a {
@@ -39,16 +57,32 @@ a {
   text-decoration: none;
 }
 
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
+h1, h2, h3, h4, h5, h6 {
   font-weight: 600;
   line-height: 1.2;
 }
 
+// ─── Focus ───────────────────────────────────────────────────────────────────
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+// ─── Card utility ────────────────────────────────────────────────────────────
+// Use .card on any surface that should look like a contained card.
+.card {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-card);
+  transition:
+    background-color var(--transition-slow),
+    border-color var(--transition-slow),
+    box-shadow var(--transition-slow);
+}
+
+// ─── Status badges ───────────────────────────────────────────────────────────
 .badge {
   display: inline-flex;
   align-items: center;

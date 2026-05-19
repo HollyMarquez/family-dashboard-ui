@@ -4,21 +4,39 @@ import { DOCUMENT } from '@angular/common';
 @Injectable({ providedIn: 'root' })
 export class ThemeService {
   private readonly document = inject(DOCUMENT);
-  private readonly _isDark = signal(false);
+  private readonly _isDark = signal(this.resolveInitialTheme());
 
   readonly isDark = this._isDark.asReadonly();
 
   constructor() {
     effect(() => {
-      this.document.body.classList.toggle('dark-theme', this._isDark());
+      const dark = this._isDark();
+      this.document.documentElement.classList.toggle('dark-theme', dark);
+      try {
+        localStorage.setItem('theme', dark ? 'dark' : 'light');
+      } catch {
+        // localStorage unavailable (e.g. private browsing restrictions)
+      }
     });
   }
 
-  enableDark(): void {
-    this._isDark.set(true);
+  toggleTheme(): void {
+    this._isDark.update(v => !v);
   }
 
-  enableLight(): void {
-    this._isDark.set(false);
+  setDark(dark: boolean): void {
+    this._isDark.set(dark);
+  }
+
+  private resolveInitialTheme(): boolean {
+    try {
+      const saved = localStorage.getItem('theme');
+      if (saved !== null) return saved === 'dark';
+    } catch {
+      // ignore
+    }
+    return typeof window !== 'undefined'
+      ? window.matchMedia('(prefers-color-scheme: dark)').matches
+      : false;
   }
 }
