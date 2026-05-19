@@ -47,11 +47,11 @@ export class Dashboard implements OnInit {
   });
 
   readonly highPriorityTasks = computed(() =>
-    (this.data()?.tasks ?? []).filter(t => t.priority === 'high' && t.status !== 'done')
+    (this.data()?.pending_tasks ?? []).filter(t => t.priority === 'high' && t.status !== 'done')
   );
 
   readonly otherTasks = computed(() =>
-    (this.data()?.tasks ?? []).filter(t => t.priority !== 'high' && t.status !== 'done')
+    (this.data()?.pending_tasks ?? []).filter(t => t.priority !== 'high' && t.status !== 'done')
   );
 
   ngOnInit(): void {
@@ -59,8 +59,19 @@ export class Dashboard implements OnInit {
     if (id) {
       this.loadData(id);
     } else {
-      this.loading.set(false);
+      this.restoreFamily();
     }
+  }
+
+  private restoreFamily(): void {
+    this.family.loadMyFamily().subscribe({
+      next: () => {
+        const id = this.family.familyId();
+        if (id) this.loadData(id);
+        else this.loading.set(false);
+      },
+      error: () => this.loading.set(false),
+    });
   }
 
   private loadData(familyId: string): void {

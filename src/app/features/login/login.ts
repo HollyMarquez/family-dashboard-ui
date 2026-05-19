@@ -86,8 +86,21 @@ export class Login implements OnInit {
         next: () => this.router.navigate(['/dashboard']),
         error: () => this.router.navigate(['/dashboard']),
       });
-    } else {
-      this.router.navigate(['/dashboard']);
+      return;
     }
+
+    const familyId = this.auth.getFamilyId();
+    if (familyId) {
+      this.family.loadFamily(familyId).subscribe({
+        next: () => this.router.navigate(['/dashboard']),
+        error: () => this.router.navigate(['/dashboard']),
+      });
+      return;
+    }
+
+    this.family.loadMyFamily().subscribe({
+      next: () => this.router.navigate(['/dashboard']),
+      error: () => this.router.navigate(['/dashboard']),
+    });
   }
 }

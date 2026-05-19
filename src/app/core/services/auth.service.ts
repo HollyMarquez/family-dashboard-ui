@@ -31,13 +31,30 @@ export class AuthService {
     }
   }
 
-  private parseUserId(token: string): string | null {
+  private parseTokenPayload(token: string): Record<string, unknown> | null {
     try {
-      const payload = JSON.parse(atob(token.split('.')[1])) as Record<string, unknown>;
-      return (payload['uid'] as string) ?? (payload['sub'] as string) ?? null;
+      return JSON.parse(atob(token.split('.')[1])) as Record<string, unknown>;
     } catch {
       return null;
     }
+  }
+
+  private parseClaim(token: string, claimNames: readonly string[]): string | null {
+    const payload = this.parseTokenPayload(token);
+    if (!payload) return null;
+    for (const name of claimNames) {
+      const value = payload[name];
+      if (typeof value === 'string' && value.trim()) return value;
+    }
+    return null;
+  }
+
+  private parseUserId(token: string): string | null {
+    return this.parseClaim(token, ['uid', 'sub']);
+  }
+
+  private parseFamilyId(token: string): string | null {
+    return this.parseClaim(token, ['family_id', 'fid', 'familyId', 'family']);
   }
 
   login(req: LoginRequest): Observable<TokenPair> {
@@ -81,6 +98,11 @@ export class AuthService {
     return localStorage.getItem('access_token');
   }
 
+  getFamilyId(): string | null {
+    const token = this.getAccessToken();
+    return token ? this.parseFamilyId(token) : null;
+  }
+
   setDisplayName(name: string): void {
     localStorage.setItem('display_name', name);
     this._displayName.set(name);
@@ -98,7 +120,13 @@ export class AuthService {
   private applyTokens(pair: TokenPair): void {
     localStorage.setItem('access_token', pair.access_token);
     localStorage.setItem('refresh_token', pair.refresh_token);
+
     const uid = this.parseUserId(pair.access_token);
     if (uid) this._userId.set(uid);
+
+    const familyId = this.parseFamilyId(pair.access_token);
+    if (familyId) {
+      localStorage.setItem('family_id', familyId);
+    }
   }
 }

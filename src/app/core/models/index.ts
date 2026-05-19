@@ -100,7 +100,7 @@ export interface CalendarEvent {
 }
 
 export interface DashboardData {
-  events: CalendarEvent[];
-  tasks: Task[];
+  upcoming_events: CalendarEvent[];
+  pending_tasks: Task[];
   quote: Quote | null;
 }

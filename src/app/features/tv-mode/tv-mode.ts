@@ -80,8 +80,8 @@ export class TvMode implements OnInit, OnDestroy {
     const id = this.family.familyId();
     if (!id) return;
     this.dashSvc.load(id).subscribe(data => {
-      this.events.set(data.events ?? []);
-      this.tasks.set(data.tasks ?? []);
+      this.events.set(data.upcoming_events ?? []);
+      this.tasks.set(data.pending_tasks ?? []);
     });
     this.quotesSvc.random(id).subscribe(q => this.quote.set(q));
   }

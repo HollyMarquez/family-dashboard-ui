@@ -70,10 +70,10 @@
           </mat-card-title>
         </mat-card-header>
         <mat-card-content>
-          @if ((data()?.events ?? []).length === 0) {
+          @if ((data()?.upcoming_events ?? []).length === 0) {
             <p class="empty-state">No events today</p>
           } @else {
-            @for (event of data()!.events; track event.id) {
+            @for (event of data()!.upcoming_events; track event.id) {
               <div class="event-item">
                 <span class="event-title">{{ event.title }}</span>
                 <span class="event-time">{{ formatTime(event.start_time, event.end_time, event.all_day) }}</span>

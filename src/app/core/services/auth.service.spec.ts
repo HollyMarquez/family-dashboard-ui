@@ -5,9 +5,16 @@ import { provideRouter } from '@angular/router';
 import { AuthService } from './auth.service';
 import { environment } from '../../../environments/environment';
 
-function fakeJwt(uid: string): string {
+function fakeJwt(uid: string, familyId?: string): string {
   const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
-  const payload = btoa(JSON.stringify({ uid, sub: uid, exp: Math.floor(Date.now() / 1000) + 900 }));
+  const payload = btoa(
+    JSON.stringify({
+      uid,
+      sub: uid,
+      exp: Math.floor(Date.now() / 1000) + 900,
+      ...(familyId ? { family_id: familyId } : {}),
+    })
+  );
   return `${header}.${payload}.fakesig`;
 }
 
@@ -51,6 +58,13 @@ describe('AuthService', () => {
     req.flush({ access_token: fakeJwt('uid-1'), refresh_token: 'rt', expires_in: 900 });
     expect(service.isAuthenticated()).toBeTrue();
     expect(service.userId()).toBe('uid-1');
+  });
+
+  it('should store family_id from JWT on login', () => {
+    service.login({ email: 'a@test.com', password: 'pass' }).subscribe();
+    const req = http.expectOne(`${environment.apiUrl}/auth/login`);
+    req.flush({ access_token: fakeJwt('uid-1', 'fam-x'), refresh_token: 'rt', expires_in: 900 });
+    expect(localStorage.getItem('family_id')).toBe('fam-x');
   });
 
   it('should store display_name from registration', () => {

@@ -1,6 +1,6 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, tap } from 'rxjs';
+import { Observable, catchError, throwError, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { Family, FamilyResponse, Member, InviteMemberRequest } from '../models';
 import { AuthService } from './auth.service';
@@ -33,6 +33,27 @@ export class FamilyService {
           this._currentMember.set(me);
           if (me?.display_name) this.auth.setDisplayName(me.display_name);
           localStorage.setItem('family_id', resp.family.id);
+        })
+      );
+  }
+
+  loadMyFamily(): Observable<FamilyResponse> {
+    return this.http
+      .get<FamilyResponse>(`${environment.apiUrl}/families/me`)
+      .pipe(
+        tap(resp => {
+          this._family.set(resp.family);
+          this._members.set(resp.members);
+          const uid = this.auth.userId();
+          const me = resp.members.find(m => m.user_id === uid) ?? null;
+          this._currentMember.set(me);
+          if (me?.display_name) this.auth.setDisplayName(me.display_name);
+          localStorage.setItem('family_id', resp.family.id);
+        }),
+        catchError(err => {
+          const familyId = this.auth.getFamilyId();
+          if (familyId) return this.loadFamily(familyId);
+          return throwError(() => err);
         })
       );
   }

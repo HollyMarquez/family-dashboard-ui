@@ -55,6 +55,20 @@ describe('FamilyService', () => {
     expect(localStorage.getItem('family_id')).toBe('fam-2');
   });
 
+  it('should load my family from /families/me', () => {
+    service.loadMyFamily().subscribe();
+    const req = http.expectOne(`${environment.apiUrl}/families/me`);
+    req.flush({
+      family: { id: 'fam-1', name: 'Marquez', created_at: '2026-01-01T00:00:00Z' },
+      members: [
+        { id: 'm1', family_id: 'fam-1', user_id: 'u1', display_name: 'Alice', avatar_url: '', role: 'parent', task_list_id: '', joined_at: '' },
+      ],
+    });
+    expect(service.hasFamily()).toBeTrue();
+    expect(service.family()?.name).toBe('Marquez');
+    expect(localStorage.getItem('family_id')).toBe('fam-1');
+  });
+
   it('should not set parent role when current user is not in member list', () => {
     service.loadFamily('fam-1').subscribe();
     const req = http.expectOne(`${environment.apiUrl}/families/fam-1`);
