@@ -75,15 +75,20 @@ export class Dashboard implements OnInit {
   }
 
   private loadData(familyId: string): void {
-    this.loading.set(true);
+    const cached = this.dashSvc.cache();
+    if (cached) {
+      this.data.set(cached);
+      this.loading.set(false);
+    } else {
+      this.loading.set(true);
+    }
     this.dashSvc.load(familyId).subscribe({
-      next: d => {
-        this.data.set(d);
-        this.loading.set(false);
-      },
+      next: d => { this.data.set(d); this.loading.set(false); },
       error: () => {
-        this.error.set('Failed to load dashboard.');
-        this.loading.set(false);
+        if (!cached) {
+          this.error.set('Failed to load dashboard.');
+          this.loading.set(false);
+        }
       },
     });
   }

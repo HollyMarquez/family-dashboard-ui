@@ -56,7 +56,7 @@ export class TvMode implements OnInit, OnDestroy {
   private clockTimer?: ReturnType<typeof setInterval>;
 
   ngOnInit(): void {
-    this.theme.enableDark();
+    this.theme.setDark(true);
     this.loadData();
     this.startClock();
     this.startRotation();
@@ -70,7 +70,7 @@ export class TvMode implements OnInit, OnDestroy {
     clearInterval(this.rotateTimer);
     clearInterval(this.refreshTimer);
     clearInterval(this.clockTimer);
-    this.theme.enableLight();
+    this.theme.setDark(false);
     if (isPlatformBrowser(this.platformId) && document.fullscreenElement) {
       document.exitFullscreen().catch(() => {});
     }

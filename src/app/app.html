@@ -3,6 +3,7 @@
     <span class="app-brand">Marquez Manor</span>
     <nav class="app-nav">
       <a mat-button routerLink="/dashboard" routerLinkActive="nav-active">Dashboard</a>
+      <a mat-button routerLink="/calendar" routerLinkActive="nav-active">Calendar</a>
       <a mat-button routerLink="/tasks" routerLinkActive="nav-active">Tasks</a>
       @if (family.isParent()) {
         <a mat-button routerLink="/quotes" routerLinkActive="nav-active">Quotes</a>
@@ -13,7 +14,16 @@
     @if (auth.displayName()) {
       <span class="user-name">{{ auth.displayName() }}</span>
     }
-    <button mat-icon-button (click)="logout()" aria-label="Sign out">
+    <button
+      mat-icon-button
+      (click)="theme.toggleTheme()"
+      [matTooltip]="theme.isDark() ? 'Switch to light mode' : 'Switch to dark mode'"
+      aria-label="Toggle theme"
+      class="theme-toggle"
+    >
+      <mat-icon>{{ theme.isDark() ? 'light_mode' : 'dark_mode' }}</mat-icon>
+    </button>
+    <button mat-icon-button (click)="logout()" aria-label="Sign out" matTooltip="Sign out">
       <mat-icon>logout</mat-icon>
     </button>
   </mat-toolbar>
